@@ -1,66 +1,65 @@
-# Gerenciador de Estoque - Loja de Surf
+# Gerenciador-Estoque-Loja-de-Surf
 
-![C](https://img.shields.io/badge/C-Standard-blue?logo=c&logoColor=white)
-![Data Structures](https://img.shields.io/badge/Estrutura%20de%20Dados-UFC-orange)
+![C](https://img.shields.io/badge/Standart-00599C?logo=c&logoColor=white)
+![Estrutura de Dados](https://img.shields.io/badge/Estrutura%20de%20Dados-orange)
+![Status](https://img.shields.io/badge/Status-Completo-brightgreen)
+![UFC](https://img.shields.io/badge/Universidade%20Federal%20do%20Cear%C3%A1-blue)
 
 ## Sobre o Projeto
 
-O **Gerenciador de Estoque - Loja de Surf** é um projeto acadêmico desenvolvido em C, focado na aplicação prática de Estruturas de Dados avançadas. Ele simula o ciclo de vida completo dos produtos de uma loja especializada, gerenciando desde o recebimento e armazenamento até a venda e despacho para entrega.
+O projeto foi o trabalho final para a disciplina de Estrutura de Dados, ministrada pela Profa. Dra. Tatiane Fernandes Figueiredo.
 
-Este trabalho foi realizado no **2º semestre** do curso de **Engenharia de Software** da **Universidade Federal do Ceará (UFC) - Campus Russas**, para a disciplina de Estrutura de Dados, sob orientação da **Profa. Dra. Tatiane Fernandes Figueiredo**.
+Implementa um sistema em C para gerenciar o estoque, vendas e entregas de uma loja de surf. O sistema lida com o ciclo de vida completo dos produtos, desde o recebimento até a saída para entrega.
 
-## Funcionalidades Principais
 
-O sistema oferece um menu interativo no console que permite realizar as seguintes operações:
+## Estruturas de Dados Utilizadas
 
-* **Gerenciamento de Estoque e Catálogo:**
-    * **Recebimento:** Adicionar novos produtos (Parafina, Leash, Quilha, Deck). O sistema organiza automaticamente o item na pilha correta e na lista de vendas.
-    * **Visualização Completa:** Exibir a estrutura física do estoque, mostrando a organização interna das caixas e pilhas.
-    * **Listagem de Vendas:** Ver o catálogo completo ordenado por preço (do menor para o maior).
+O núcleo do projeto é a aplicação prática das seguintes estruturas de dados para resolver os desafios de gerenciamento:
+* **Lista Duplamente Encadeada Ordenada:** Utilizada para manter o catálogo de produtos sempre organizado por preço em ordem crescente. Toda nova inserção mantém a ordenação da lista.
 
-* **Consultas e Filtros:**
-    * Filtrar produtos por **faixa de preço** (Mínimo e Máximo).
-    * Filtrar produtos por **tipo/categoria** específica.
+* **Pilhas:** Quatro pilhas são usadas para simular o estoque físico da loja, com uma pilha para cada categoria de produto (Parafina, Leash, Quilhas, Decks). A lógica de empilhar e desempilhar gerencia caixas de produtos com capacidades específicas.
 
-* **Operações Comerciais:**
-    * **Comprar:** Realizar a venda de um produto através do seu código único, removendo-o das pilhas de estoque e da lista de vendas.
-    * **Fila de Entregas:** Ao finalizar uma compra, o pedido é adicionado a uma fila, contendo os dados do cliente e do produto.
-    * **Processar Entrega:** Simular o despacho do pedido mais antigo da fila (FIFO - First In, First Out).
+* **Filas:** Utilizada para criar e gerenciar a ordem dos pedidos que foram vendidos e aguardam para sair para entrega, garantindo que o primeiro a ser vendido é o primeiro a ser entregue.
 
-## Estrutura do Projeto
 
-O código utiliza estruturas de dados específicas para resolver diferentes problemas de negócio:
+## Funcionalidades
 
-* **Lista Duplamente Encadeada Ordenada:** Mantém o catálogo de vendas sempre ordenado por preço.
-* **Pilhas (Stacks):** Simulam o estoque físico. Existem 4 pilhas (uma para cada tipo de produto), onde cada nó é uma caixa com capacidade limitada.
-* **Fila (Queue):** Gerencia a ordem de saída das entregas.
+* **Recebimento de Produtos:** Adiciona novos itens ao catálogo e ao estoque de forma organizada.
 
-Os arquivos estão organizados da seguinte forma:
+* **Gestão de Estoque:** Gerencia a capacidade das caixas no topo de cada pilha, criando novas caixas quando as atuais atingem o limite.
 
-* `main.c`: Arquivo principal que contém o menu interativo e a chamada para as funções do sistema.
-* `loja.c`: Implementação de toda a lógica do sistema, manipulação das estruturas de dados (pilhas, listas e filas) e regras de negócio.
-* `loja.h`: Arquivo de cabeçalho (header) contendo as definições das `structs`, constantes e protótipos das funções.
+* **Consulta de Produtos:** Permite visualizar os produtos disponíveis por categoria ou por uma faixa de preço específica.
 
-## Como Executar
+* **Processo de Venda:** Remove um produto do estoque (pilhas) e do catálogo de vendas (lista) através de seu código único.
 
-1.  Certifique-se de ter um compilador C (como o GCC) instalado.
-2.  Compile os arquivos `.c` gerando o executável.
-    ```bash
-    gcc -o loja main.c loja.c -Wall
-    ```
-3.  Execute o programa compilado.
-    * No Linux/Mac:
-        ```bash
-        ./loja
-        ```
-    * No Windows:
-        ```bash
-        loja.exe
-        ```
+* **Fila de Entrega:** Adiciona pedidos vendidos a uma fila de entrega com os dados do cliente para despacho.
+
+
+## Como Executar o Projeto
+
+**Pré-requisitos:**
+* Compilador GCC (ou compatível). 
+<br/><br/>  
+
+1. **Clone o repositório:**
+```bash
+git clone https://github.com/artur-sres/Gerenciador-Estoque-Loja-de-Surf
+```
+2. **Navegue até a pasta do projeto:**
+```bash
+cd Gerenciador-Estoque-Loja-de-Surf
+```
+3. **Compile o programa:**
+```bash
+gcc -o executavel main.c loja.c -W all
+```
+4. **Execute o programa:**
+```bash
+./executavel
+```
+Ao executar, o programa exibirá um menu interativo no console com as opções disponíveis.
 
 ## Autor
 
-Feito por **[Artur Saraiva Rabelo](https://github.com/artur-sres)**.
 
----
-*Obs: A documentação deste projeto (README) foi gerada com auxílio de Inteligência Artificial.*
+Feito por **[Artur Saraiva Rabelo](https://github.com/artur-sres)**.
