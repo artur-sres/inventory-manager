@@ -18,7 +18,7 @@ int main(){
     //Loop de testes
     int opcao;
     do {
-        printf("\n============================================ MENU PRINCIPAL - TATI SURF.CO ============================================\n");
+        printf("\n============================================ MENU PRINCIPAL - TATI SURF.CO ==========================+==================\n");
         printf(" [ 1 ] Visualizar Estoque Completo (organizacao por pilhas e caixas)\n");
         printf(" [ 2 ] Visualizar Lista de Venda (todos os produtos, ordenados por preco)\n");
         printf(" [ 3 ] Filtrar Lista de Venda por Faixa de Preco\n");
@@ -27,7 +27,7 @@ int main(){
         printf(" [ 6 ] Processar Entrega\n");
         printf(" [ 7 ] Imprimir Fila de Entregas\n");
         printf(" [ 0 ] Sair do Programa\n");
-        printf("========================================================================================================================\n");
+        printf("=======================================================================================================+=================\n");
         printf("Escolha uma opcao: ");
         
         scanf("%d", &opcao); 

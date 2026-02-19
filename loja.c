@@ -1,6 +1,7 @@
 #include "loja.h"
 
-//Variaveis globais 
+//Variaveis globais ================================================================================================================> 
+
 no_pilha_de_caixas* inicio_pilhas = NULL; //Lista de pilha de caixas
 no_pilha_de_caixas* final_pilhas = NULL;
 int tamanho_pilhas = 0;
@@ -13,20 +14,9 @@ no_pedido_entrega* inicio_fila_entregas = NULL; //Fila de pedidos de entrega
 no_pedido_entrega* fim_fila_entregas = NULL;
 int tamanho_fila_entregas = 0;
 
+// Funcoes auxiliares ==============================================================================================================>
 
-//Funcoes utilizadas
-no_pilha_de_caixas* achar_tipo(no_pilha_de_caixas* inicio_pilha, char* tipo) { //Funcao para encontrar um tipo de pilha
-    no_pilha_de_caixas* aux = inicio_pilha;
-    while (aux != NULL) {
-        if (strcmp(aux->tipo, tipo) == 0) {
-            return aux;
-        }
-        aux = aux->prox;
-    }
-    return NULL;
-}
-
-char* gerar_codigo(const char* prefixo) { //Funcao para gerar um codigo de identicacao para produtos e para caixas
+char* gerar_codigo(const char* prefixo) { 
     int numero_aleatorio = 1000 + (rand() % 9000);
     int tamanho_necessario = strlen(prefixo) + 1 + 4 + 1;
     char* codigo_final = malloc(tamanho_necessario);
@@ -34,7 +24,24 @@ char* gerar_codigo(const char* prefixo) { //Funcao para gerar um codigo de ident
     return codigo_final;
 }
 
-no_caixa* criar_nova_caixa(no_produto* novo_produto, const char* tipo){ //Funcao para criar nova caixa
+char* identificar_tipo_pelo_codigo(char* codigo_produto){ 
+    if (strncmp(codigo_produto, "PRD-PAR", 7) == 0) {
+        return "parafina";
+    } else if (strncmp(codigo_produto, "PRD-LSH", 7) == 0) {
+        return "leash";
+    } else if (strncmp(codigo_produto, "PRD-QHA", 7) == 0) {
+        return "quilha";
+    } else if (strncmp(codigo_produto, "PRD-DCK", 7) == 0) {
+        return "deck";
+    }
+    
+    // Se não for nenhum dos tipos conhecidos, retorna NULL
+    return NULL; 
+}
+
+// Funcoes de manipulacao de pilhas, listas e filas ================================================================================>
+
+no_caixa* criar_nova_caixa(no_produto* novo_produto, const char* tipo){ 
     no_caixa* nova_caixa = malloc(sizeof(no_caixa));
 
     //Atualiza os campos da nova caixa
@@ -99,7 +106,18 @@ void inserir_produto_ordenado_na_caixa(no_produto* novo_produto, no_produto** in
     }
 }
 
-void inserir_produto_ordenado_na_lista_de_vendas(no_produto* novo_produto){ //Funcao para inserir no_produto ordenado por preco dentro da lista de venda
+no_pilha_de_caixas* achar_tipo(no_pilha_de_caixas* inicio_pilha, char* tipo) { 
+    no_pilha_de_caixas* aux = inicio_pilha;
+    while (aux != NULL) {
+        if (strcmp(aux->tipo, tipo) == 0) {
+            return aux;
+        }
+        aux = aux->prox;
+    }
+    return NULL;
+}
+
+void inserir_produto_ordenado_na_lista_de_vendas(no_produto* novo_produto){ 
     //Aloca memoria
     no_pp* novo_no_pp = (no_pp*) malloc(sizeof(no_pp));
     novo_no_pp->produto = novo_produto;
@@ -152,7 +170,35 @@ void inserir_produto_ordenado_na_lista_de_vendas(no_produto* novo_produto){ //Fu
     tamanho_pp++;
 }
 
-void add(char* tipo, char* descricao, float preco){ //Funcao para adicionar um produto ao estoque
+void adicionar_na_fila_de_entrega(no_produto* produto, char* nome, char* cpf, char* cep, char* rua, char* numero, char* complemento) { 
+    //Aloca memoria para o novo no do pedido
+    no_pedido_entrega* novo_pedido = (no_pedido_entrega*) malloc(sizeof(no_pedido_entrega));
+
+    //Preenche os dados do pedido
+    novo_pedido->produto_entregue = produto;
+    novo_pedido->nome_cliente = strdup(nome);
+    novo_pedido->cpf = strdup(cpf);
+    novo_pedido->cep = strdup(cep);
+    novo_pedido->rua = strdup(rua);
+    novo_pedido->numero_casa = strdup(numero);
+    novo_pedido->complemento = strdup(complemento);
+    novo_pedido->prox = NULL; 
+
+    //Adiciona o no no final da fila
+    if(inicio_fila_entregas == NULL){ // Se a fila estava vazia
+        inicio_fila_entregas = novo_pedido; 
+        fim_fila_entregas = novo_pedido;    
+
+    }else{ // Se a fila ja tinha itens
+        fim_fila_entregas->prox = novo_pedido; 
+        fim_fila_entregas = novo_pedido;       
+    }
+    printf("\n\033[32mPedido para '%s' foi adicionado a fila de entregas!\033[0m\n", nome);
+}
+
+// Funcoes que o usuario utiliza no menu ===========================================================================================>
+
+void add(char* tipo, char* descricao, float preco){ 
     //Verifica se o tipo e valido
     if (strcmp(tipo, "parafina") != 0 && strcmp(tipo, "leash") != 0 && strcmp(tipo, "quilha") != 0 && strcmp(tipo, "deck") != 0) {
         printf("\n\033[31mERRO! O tipo de produto '\033[4m%s\033[0;31m' nao e valido.\033[0m\nTipos validos: \033[32;4mparafina\033[0m, \033[32;4mleash\033[0m, \033[32;4mquilha\033[0m, \033[32;4mdeck\033[0m\n\n", tipo);
@@ -244,171 +290,7 @@ void add(char* tipo, char* descricao, float preco){ //Funcao para adicionar um p
     }
 }
 
-void imprimir_estoque_completo(){ //Funcao para imprimir todos os produtos disponiveis no estoque (Por caixas)
-
-    //A logica e bem simples, ele vai entrar em uma pilha, entrar na caixa topo e imprimir todos os produtos (que ja estao ordenados)
-    //Depois ele passa para a proxima caixa e repete o processo ate nao ter mais caixas
-    //E por ultima, passa para proxima pilha e faz todo o processo ate que nao hajam mais pilhas
-
-    printf("=================================================== ESTOQUE COMPLETO ===================================================\n");
-    if(inicio_pilhas==NULL){
-        printf("\033[31mEstoque vazio!\033[0m\n");
-        printf("========================================================================================================================\n");
-        return;
-    }
-    printf("Temos %i tipos de produtos disponiveis:\n", tamanho_pilhas);
-    
-    no_pilha_de_caixas* aux_tipo_pilha=inicio_pilhas;
-    while(aux_tipo_pilha!=NULL){
-        printf("------------------------------------------------------------------------------------------------------------------------\n");
-        printf("\033[34mTemos %i produto(s) do tipo \033[4m%s\033[0m\033[34m, distribuidos em uma pilha com %d caixa(s)\033[0m\n\n", aux_tipo_pilha->qntd_itens, aux_tipo_pilha->tipo, aux_tipo_pilha->qntd_caixas);
-        no_caixa* caixa_atual=aux_tipo_pilha->topo;
-        int n_caixa=aux_tipo_pilha->qntd_caixas;
-        while(caixa_atual!=NULL){
-            printf("\033[032mCaixa %i\033[0m(\033[033m%s\033[0m): %i produto(s)\n\n", n_caixa, caixa_atual->codigo, caixa_atual->qntd_itens);
-            no_produto* produto_atual=caixa_atual->inicio;
-            while(produto_atual!=NULL){
-                printf("\033[4m%s\033[0m(\033[033m%s\033[0m)\nDescricao:%s\nPreco: R$%.2f\n\n", produto_atual->tipo, produto_atual->codigo, produto_atual->descricao, produto_atual->preco);
-                produto_atual=produto_atual->prox;
-            }
-            if(caixa_atual->prox!=NULL){
-                printf("........................................................................................................................\n\n");
-            }
-            caixa_atual=caixa_atual->prox;
-            n_caixa--;
-        }
-        aux_tipo_pilha=aux_tipo_pilha->prox;
-        if(aux_tipo_pilha != NULL) {
-            printf("========================================================================================================================\n");
-        }
-    }
-    printf("========================================================================================================================\n");
-}
-
-void imprimir_lista_venda(){ //Funcao para imprimir todos os produtos disponiveis para venda 
-    //Uma simples impressao de uma lista encadeada
-    printf("\n============================================= LISTA DE PRODUTOS PARA VENDA =============================================\n");
-    if(inicio_pp == NULL){
-        printf("\033[31mNenhum produto disponivel para venda!\033[0m\n");
-        printf("========================================================================================================================\n");
-        return;
-    }
-    
-    no_pp* ponteiro_atual = inicio_pp;
-    while(ponteiro_atual != NULL){
-        printf("\033[4m%s\033[0m (\033[033m%s\033[0m)\n", ponteiro_atual->produto->tipo, ponteiro_atual->produto->codigo);
-        printf("Descricao: %s\n", ponteiro_atual->produto->descricao);
-        printf("Preco: R$%.2f\n\n", ponteiro_atual->produto->preco);
-        ponteiro_atual = ponteiro_atual->prox;
-    }
-    printf("========================================================================================================================\n");
-}
-
-void imprimir_por_tipo(char* tipo){ //Funcao para visualizar produtos de uma categoria especifica
-    //Validação do tipo de entrada
-    if (strcmp(tipo, "parafina") != 0 && strcmp(tipo, "leash") != 0 && strcmp(tipo, "quilha") != 0 && strcmp(tipo, "deck") != 0) {
-        printf("\n\033[31mERRO! O tipo de produto '\033[4m%s\033[0;31m' nao e valido.\033[0m\nTipos validos: \033[32;4mparafina\033[0m, \033[32;4mleash\033[0m, \033[32;4mquilha\033[0m, \033[32;4mdeck\033[0m\n\n", tipo);
-        return;
-    }
-
-    printf("\n============================================ CONSULTA DE PRODUTOS POR TIPO =============================================\n");
-    printf("Categoria selecionada: \033[4m%s\033[0m\n\n", tipo);
-    
-    //Verifica se a lista principal está vazia
-    if(inicio_pp == NULL){
-        printf("\033[31mNenhum produto disponivel para venda!\033[0m\n");
-        printf("========================================================================================================================\n");
-        return;
-    }
-    
-    no_pp* ponteiro_atual = inicio_pp;
-    int encontrou_produto = 0; //Flag
-
-    //Percorre a lista de produtos
-    while(ponteiro_atual != NULL){
-        //Se o tipo do produto for o desejado imprime
-        if(strcmp(ponteiro_atual->produto->tipo, tipo) == 0){
-            printf("\033[4m%s\033[0m (\033[033m%s\033[0m)\n", ponteiro_atual->produto->tipo, ponteiro_atual->produto->codigo);
-            printf("Descricao: %s\n", ponteiro_atual->produto->descricao);
-            printf("Preco: R$%.2f\n\n", ponteiro_atual->produto->preco);
-            encontrou_produto = 1; //Marca que pelo menos um foi encontrado
-        }
-        ponteiro_atual = ponteiro_atual->prox;
-    }
-
-    //Se nenhum produto foi encontrado, avisa o usuário
-    if(encontrou_produto == 0){
-        printf("\033[33mNenhum produto encontrado para a categoria '%s'.\033[0m\n\n", tipo);
-    }
-
-    printf("========================================================================================================================\n");
-}
-
-void imprimir_por_preco(float min, float max){ //Funcao para visualizar produtos dentro de um intervalo de preço
-
-    //Validação para garantir que o preço mínimo não é maior que o máximo
-    if (min > max) {
-        printf("\n\033[31mERRO! O preco minimo (R$%.2f) nao pode ser maior que o preco maximo (R$%.2f).\033[0m\n", min, max);
-        return;
-    }
-
-    printf("\n=========================================== CONSULTA DE PRODUTOS POR PREÇO ===========================================\n");
-    printf("Exibindo produtos na faixa de R$%.2f a R$%.2f\n\n", min, max);
-
-    //Verifica se a lista de vendas está vazia
-    if(inicio_pp == NULL){
-        printf("\033[31mNenhum produto disponivel para venda!\033[0m\n");
-        printf("========================================================================================================================\n");
-        return;
-    }
-    
-    no_pp* ponteiro_atual = inicio_pp;
-    int encontrou_produto = 0; //Flag 
-
-    //Percorre a lista de produtos
-    while(ponteiro_atual != NULL){
-        float preco_atual = ponteiro_atual->produto->preco;
-
-        //Se o preço atual já é maior que o máximo, para o loop
-        if (preco_atual > max) {
-            break; 
-        }
-
-        //Imprime se estiver dentro do intervalo
-        if(preco_atual >= min){
-            printf("\033[4m%s\033[0m (\033[033m%s\033[0m)\n", ponteiro_atual->produto->tipo, ponteiro_atual->produto->codigo);
-            printf("Descricao: %s\n", ponteiro_atual->produto->descricao);
-            printf("Preco: R$%.2f\n\n", ponteiro_atual->produto->preco);
-            encontrou_produto = 1; 
-        }
-
-        ponteiro_atual = ponteiro_atual->prox;
-    }
-
-    //Se nenhum foi encontrado
-    if(encontrou_produto == 0){
-        printf("\033[33mNenhum produto encontrado na faixa de preco de R$%.2f a R$%.2f.\033[0m\n\n", min, max);
-    }
-
-    printf("========================================================================================================================\n");
-}
-
-char* identificar_tipo_pelo_codigo(char* codigo_produto){ //Funcao para identificar o tipo de produto pelo codigo
-    if (strncmp(codigo_produto, "PRD-PAR", 7) == 0) {
-        return "parafina";
-    } else if (strncmp(codigo_produto, "PRD-LSH", 7) == 0) {
-        return "leash";
-    } else if (strncmp(codigo_produto, "PRD-QHA", 7) == 0) {
-        return "quilha";
-    } else if (strncmp(codigo_produto, "PRD-DCK", 7) == 0) {
-        return "deck";
-    }
-    
-    // Se não for nenhum dos tipos conhecidos, retorna NULL
-    return NULL; 
-}
-
-no_produto* remover_produto(char* codigo){ //Funcao para remover um produto do estoque e retornar o endereço do removido
+no_produto* remover_produto(char* codigo){ 
 
     //Valida o produto e a pilha pelo tipo, caso não encontre, retorna NULL e informa ao usuario
     char* tipo = identificar_tipo_pelo_codigo(codigo);
@@ -575,63 +457,7 @@ no_produto* remover_produto(char* codigo){ //Funcao para remover um produto do e
     return produto_encontrado;
 }
 
-void adicionar_na_fila_de_entrega(no_produto* produto, char* nome, char* cpf, char* cep, char* rua, char* numero, char* complemento) { //Funcao para criar o pedido e adiciona-lo na fila de entrega
-    //Aloca memoria para o novo no do pedido
-    no_pedido_entrega* novo_pedido = (no_pedido_entrega*) malloc(sizeof(no_pedido_entrega));
-
-    //Preenche os dados do pedido
-    novo_pedido->produto_entregue = produto;
-    novo_pedido->nome_cliente = strdup(nome);
-    novo_pedido->cpf = strdup(cpf);
-    novo_pedido->cep = strdup(cep);
-    novo_pedido->rua = strdup(rua);
-    novo_pedido->numero_casa = strdup(numero);
-    novo_pedido->complemento = strdup(complemento);
-    novo_pedido->prox = NULL; 
-
-    //Adiciona o no no final da fila
-    if(inicio_fila_entregas == NULL){ // Se a fila estava vazia
-        inicio_fila_entregas = novo_pedido; 
-        fim_fila_entregas = novo_pedido;    
-
-    }else{ // Se a fila ja tinha itens
-        fim_fila_entregas->prox = novo_pedido; 
-        fim_fila_entregas = novo_pedido;       
-    }
-    printf("\n\033[32mPedido para '%s' foi adicionado a fila de entregas!\033[0m\n", nome);
-}
-
-void preparar_pedido(no_produto* produto_comprado){ //Funcao para pedir os dados do cliente ao usuario
-    //Variaveis temporarias para armazenar os dados digitados
-    char nome[100], cpf[15], cep[10], rua[100], numero[10], complemento[50];
-
-    printf("\n--- PREPARANDO PEDIDO PARA ENTREGA ---\n");
-    printf("Produto: %s (Codigo: %s)\n", produto_comprado->descricao, produto_comprado->codigo);
-    printf("--------------------------------------\n");
-    printf("Por favor, insira os dados do cliente para a entrega:\n\n");
-
-    printf("Nome completo: ");
-    scanf(" %[^\n]", nome);
-
-    printf("CPF (apenas numeros): ");
-    scanf("%14s", cpf);
-
-    printf("CEP (apenas numeros): ");
-    scanf("%9s", cep);
-
-    printf("Nome da Rua: ");
-    scanf(" %[^\n]", rua);
-
-    printf("Numero da casa/apto: ");
-    scanf("%9s", numero);
-
-    printf("Complemento (se nao houver, digite 'nenhum'): ");
-    scanf(" %[^\n]", complemento);
-
-    adicionar_na_fila_de_entrega(produto_comprado, nome, cpf, cep, rua, numero, complemento);
-}
-
-void processar_entrega(){ //Funcao para remover o primeiro item da fila e simular a saida para entrega
+void processar_entrega(){ 
 
     //Verifica se a fila esta vazia
     if (inicio_fila_entregas == NULL) {
@@ -672,7 +498,158 @@ void processar_entrega(){ //Funcao para remover o primeiro item da fila e simula
     free(pedido_a_remover);
 }
 
-void imprimir_fila_de_entregas(){ //Funcao para imprimir a fila de entregas
+// Interface =======================================================================================================================>
+
+void imprimir_estoque_completo(){ 
+
+    //A logica e bem simples, ele vai entrar em uma pilha, entrar na caixa topo e imprimir todos os produtos (que ja estao ordenados)
+    //Depois ele passa para a proxima caixa e repete o processo ate nao ter mais caixas
+    //E por ultima, passa para proxima pilha e faz todo o processo ate que nao hajam mais pilhas
+
+    printf("=================================================== ESTOQUE COMPLETO ===================================================\n");
+    if(inicio_pilhas==NULL){
+        printf("\033[31mEstoque vazio!\033[0m\n");
+        printf("========================================================================================================================\n");
+        return;
+    }
+    printf("Temos %i tipos de produtos disponiveis:\n", tamanho_pilhas);
+    
+    no_pilha_de_caixas* aux_tipo_pilha=inicio_pilhas;
+    while(aux_tipo_pilha!=NULL){
+        printf("------------------------------------------------------------------------------------------------------------------------\n");
+        printf("\033[34mTemos %i produto(s) do tipo \033[4m%s\033[0m\033[34m, distribuidos em uma pilha com %d caixa(s)\033[0m\n\n", aux_tipo_pilha->qntd_itens, aux_tipo_pilha->tipo, aux_tipo_pilha->qntd_caixas);
+        no_caixa* caixa_atual=aux_tipo_pilha->topo;
+        int n_caixa=aux_tipo_pilha->qntd_caixas;
+        while(caixa_atual!=NULL){
+            printf("\033[032mCaixa %i\033[0m(\033[033m%s\033[0m): %i produto(s)\n\n", n_caixa, caixa_atual->codigo, caixa_atual->qntd_itens);
+            no_produto* produto_atual=caixa_atual->inicio;
+            while(produto_atual!=NULL){
+                printf("\033[4m%s\033[0m(\033[033m%s\033[0m)\nDescricao:%s\nPreco: R$%.2f\n\n", produto_atual->tipo, produto_atual->codigo, produto_atual->descricao, produto_atual->preco);
+                produto_atual=produto_atual->prox;
+            }
+            if(caixa_atual->prox!=NULL){
+                printf("........................................................................................................................\n\n");
+            }
+            caixa_atual=caixa_atual->prox;
+            n_caixa--;
+        }
+        aux_tipo_pilha=aux_tipo_pilha->prox;
+        if(aux_tipo_pilha != NULL) {
+            printf("========================================================================================================================\n");
+        }
+    }
+    printf("========================================================================================================================\n");
+}
+
+void imprimir_lista_venda(){ 
+    //Uma simples impressao de uma lista encadeada
+    printf("\n============================================= LISTA DE PRODUTOS PARA VENDA =============================================\n");
+    if(inicio_pp == NULL){
+        printf("\033[31mNenhum produto disponivel para venda!\033[0m\n");
+        printf("========================================================================================================================\n");
+        return;
+    }
+    
+    no_pp* ponteiro_atual = inicio_pp;
+    while(ponteiro_atual != NULL){
+        printf("\033[4m%s\033[0m (\033[033m%s\033[0m)\n", ponteiro_atual->produto->tipo, ponteiro_atual->produto->codigo);
+        printf("Descricao: %s\n", ponteiro_atual->produto->descricao);
+        printf("Preco: R$%.2f\n\n", ponteiro_atual->produto->preco);
+        ponteiro_atual = ponteiro_atual->prox;
+    }
+    printf("========================================================================================================================\n");
+}
+
+void imprimir_por_tipo(char* tipo){ 
+    //Validação do tipo de entrada
+    if (strcmp(tipo, "parafina") != 0 && strcmp(tipo, "leash") != 0 && strcmp(tipo, "quilha") != 0 && strcmp(tipo, "deck") != 0) {
+        printf("\n\033[31mERRO! O tipo de produto '\033[4m%s\033[0;31m' nao e valido.\033[0m\nTipos validos: \033[32;4mparafina\033[0m, \033[32;4mleash\033[0m, \033[32;4mquilha\033[0m, \033[32;4mdeck\033[0m\n\n", tipo);
+        return;
+    }
+
+    printf("\n============================================ CONSULTA DE PRODUTOS POR TIPO =============================================\n");
+    printf("Categoria selecionada: \033[4m%s\033[0m\n\n", tipo);
+    
+    //Verifica se a lista principal está vazia
+    if(inicio_pp == NULL){
+        printf("\033[31mNenhum produto disponivel para venda!\033[0m\n");
+        printf("========================================================================================================================\n");
+        return;
+    }
+    
+    no_pp* ponteiro_atual = inicio_pp;
+    int encontrou_produto = 0; //Flag
+
+    //Percorre a lista de produtos
+    while(ponteiro_atual != NULL){
+        //Se o tipo do produto for o desejado imprime
+        if(strcmp(ponteiro_atual->produto->tipo, tipo) == 0){
+            printf("\033[4m%s\033[0m (\033[033m%s\033[0m)\n", ponteiro_atual->produto->tipo, ponteiro_atual->produto->codigo);
+            printf("Descricao: %s\n", ponteiro_atual->produto->descricao);
+            printf("Preco: R$%.2f\n\n", ponteiro_atual->produto->preco);
+            encontrou_produto = 1; //Marca que pelo menos um foi encontrado
+        }
+        ponteiro_atual = ponteiro_atual->prox;
+    }
+
+    //Se nenhum produto foi encontrado, avisa o usuário
+    if(encontrou_produto == 0){
+        printf("\033[33mNenhum produto encontrado para a categoria '%s'.\033[0m\n\n", tipo);
+    }
+
+    printf("========================================================================================================================\n");
+}
+
+void imprimir_por_preco(float min, float max){ 
+
+    //Validação para garantir que o preço mínimo não é maior que o máximo
+    if (min > max) {
+        printf("\n\033[31mERRO! O preco minimo (R$%.2f) nao pode ser maior que o preco maximo (R$%.2f).\033[0m\n", min, max);
+        return;
+    }
+
+    printf("\n=========================================== CONSULTA DE PRODUTOS POR PREÇO ===========================================\n");
+    printf("Exibindo produtos na faixa de R$%.2f a R$%.2f\n\n", min, max);
+
+    //Verifica se a lista de vendas está vazia
+    if(inicio_pp == NULL){
+        printf("\033[31mNenhum produto disponivel para venda!\033[0m\n");
+        printf("========================================================================================================================\n");
+        return;
+    }
+    
+    no_pp* ponteiro_atual = inicio_pp;
+    int encontrou_produto = 0; //Flag 
+
+    //Percorre a lista de produtos
+    while(ponteiro_atual != NULL){
+        float preco_atual = ponteiro_atual->produto->preco;
+
+        //Se o preço atual já é maior que o máximo, para o loop
+        if (preco_atual > max) {
+            break; 
+        }
+
+        //Imprime se estiver dentro do intervalo
+        if(preco_atual >= min){
+            printf("\033[4m%s\033[0m (\033[033m%s\033[0m)\n", ponteiro_atual->produto->tipo, ponteiro_atual->produto->codigo);
+            printf("Descricao: %s\n", ponteiro_atual->produto->descricao);
+            printf("Preco: R$%.2f\n\n", ponteiro_atual->produto->preco);
+            encontrou_produto = 1; 
+        }
+
+        ponteiro_atual = ponteiro_atual->prox;
+    }
+
+    //Se nenhum foi encontrado
+    if(encontrou_produto == 0){
+        printf("\033[33mNenhum produto encontrado na faixa de preco de R$%.2f a R$%.2f.\033[0m\n\n", min, max);
+    }
+
+    printf("========================================================================================================================\n");
+}
+
+void imprimir_fila_de_entregas(){ 
 
     printf("\n============================================ FILA DE ENTREGAS PENDENTES ============================================\n");
 
@@ -701,3 +678,40 @@ void imprimir_fila_de_entregas(){ //Funcao para imprimir a fila de entregas
     }
     printf("========================================================================================================================\n");
 }
+
+void preparar_pedido(no_produto* produto_comprado){ 
+    //Variaveis temporarias para armazenar os dados digitados
+    char nome[100], cpf[15], cep[10], rua[100], numero[10], complemento[50];
+
+    printf("\n--- PREPARANDO PEDIDO PARA ENTREGA ---\n");
+    printf("Produto: %s (Codigo: %s)\n", produto_comprado->descricao, produto_comprado->codigo);
+    printf("--------------------------------------\n");
+    printf("Por favor, insira os dados do cliente para a entrega:\n\n");
+
+    printf("Nome completo: ");
+    scanf(" %[^\n]", nome);
+
+    printf("CPF (apenas numeros): ");
+    scanf("%14s", cpf);
+
+    printf("CEP (apenas numeros): ");
+    scanf("%9s", cep);
+
+    printf("Nome da Rua: ");
+    scanf(" %[^\n]", rua);
+
+    printf("Numero da casa/apto: ");
+    scanf("%9s", numero);
+
+    printf("Complemento (se nao houver, digite 'nenhum'): ");
+    scanf(" %[^\n]", complemento);
+
+    adicionar_na_fila_de_entrega(produto_comprado, nome, cpf, cep, rua, numero, complemento);
+}
+
+
+
+
+
+
+
