@@ -60,6 +60,4 @@ gcc -o executavel main.c loja.c
 Ao executar, o programa exibirá um menu interativo no console com as opções disponíveis.
 
 
-## Autor
 
-Feito por **[Artur Saraiva Rabelo](https://github.com/artur-sres)**.
