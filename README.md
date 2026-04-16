@@ -1,8 +1,7 @@
 # C-DataStructure Inventory Manager (CLI)
 
 ![C](https://img.shields.io/badge/Standart-00599C?logo=c&logoColor=white)
-![Estrutura de Dados](https://img.shields.io/badge/Estrutura%20de%20Dados-orange)
-![Status](https://img.shields.io/badge/Status-Completo-brightgreen)
+![Estrutura de Dados](https://img.shields.io/badge/Estrutura%20de%20Dados-green)
 ![UFC](https://img.shields.io/badge/Universidade%20Federal%20do%20Cear%C3%A1-blue)
 
 ## Sobre 
