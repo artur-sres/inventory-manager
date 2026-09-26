@@ -1,11 +1,5 @@
 # C-DataStructure Inventory Manager (CLI)
 
-![C](https://img.shields.io/badge/Standart-00599C?logo=c&logoColor=white)
-![Estrutura de Dados](https://img.shields.io/badge/Estrutura%20de%20Dados-green)
-![UFC](https://img.shields.io/badge/Universidade%20Federal%20do%20Cear%C3%A1-blue)
-
-## Sobre 
-
 O projeto foi o trabalho final para a disciplina de Estrutura de Dados durante o segundo semestre do curso de Engenharia de Software, ministrada pela Profa. Dra. Tatiane Fernandes Figueiredo.
 
 Implementa um sistema em C para gerenciar o estoque, vendas e entregas de uma loja de surf. O sistema lida com o ciclo de vida completo dos produtos, desde o recebimento até a saída para entrega.
